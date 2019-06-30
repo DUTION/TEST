@@ -1,14 +1,31 @@
 import 'dart:html';
+import 'dart:async';
 
 void main(){
   final InputElement input = querySelector('input');
   final DivElement div = querySelector('div');
   
+  final validator = new StreamTransformer.fromHandlers(
+    handleData: (inputValue, sink){
+      if( inputValue.contains('@')){
+        sink.add(inputValue);
+      } else{
+        sink.addError('Enter a valid email');
+      }
+    }
+  );
+  
   input.onInput
-    .listen((dynamic event)=> print(event.target.value));//使用dynamic等於把event的類型改成dynamic，所以即使eventtarget沒有value這個屬性也不會出錯
+    .map((dynamic event) => event.target.value)
+    .transform(validator)
+    .listen(
+      (inputValue)=> div.innerHtml ='',
+      onError: (err)=> div.innerHtml =err
+  );
 }
 
 
+//使用dynamic等於把event的類型改成dynamic，所以即使eventtarget沒有value這個屬性也不會出錯
 //ps
 //此event原為Event類型,onInput返回 ElementStream<Event>類型 兩個並不相等
 //像ElementStream<Event>之類的泛型不可使用<>裡(Event)的屬性
